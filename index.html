@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+<meta property="fb:admins" content="1566015894" />
+<title>Koh Phangan Tide Chart 2015</title>
+<script type="text/javascript" src="d3v3.4.min.js"></script>
+<script type="text/javascript" src="suncalc.js"></script>
+<script type="text/javascript" src="jquery-1.11.1.min.js"></script>
+<style>
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 300;
+  src: local('Open Sans Light'), local('OpenSans-Light'), url(OpenSansLight.woff) format('woff');
+}
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Open Sans'), local('OpenSans'), url(OpenSansBold.woff) format('woff');
+}
+body {
+  overflow: hidden;
+  margin: 0;
+  font-size: 14px;
+  font-family: 'Open Sans', Arial, sans-serif;
+  font-weight: 300;
+  padding: 0;
+}
+
+#chart, #header, #footer, #logo {
+  position: absolute;
+  margin: 0;
+  padding: 0;
+}
+#menu {
+	position:absolute;
+	top:20px;
+	right: 30px;
+	height: 100px;
+	width: 80px;
+  	z-index: 1000;
+}
+#menu p {
+	font-weight:700;	
+	font-size: 14px;
+	text-align:right;
+	color:#ED5314;  
+	cursor:pointer;
+	margin: 0;
+	padding:0;
+	padding-bottom:3px;
+}
+#menu p:hover {
+	color:#FFB92A;  
+}
+#menu p.active {
+  color:#777;    
+}
+#header, #footer, #logo {
+  z-index: 1;
+  display: block;
+}
+#title{
+  font-size: 36px;
+}
+.sup{
+  font-size: 20px;
+}
+#descr {
+	margin-top:16px;
+  font-size: 14px;
+}
+
+#header {
+  top: 20px;
+  left: 30px;
+  height:100px;
+  right: 30px;
+}
+#logo {
+  top: 20px;
+  left: 30px;
+  height:85px;
+  right: 30px;
+  text-align: right;
+  font-weight: 700;
+  font-size: 36px;
+  color:#eee;
+}
+#footer {
+  bottom: 20px;
+  right: 10px;
+  height:30px;
+  left:30px;
+  text-align: right;
+}
+#attrib {
+  font-size: 11px;
+  color:#999;
+}
+
+rect {
+  fill: none;
+  pointer-events: all;
+}
+
+pre {
+  font-size: 18px;
+}
+
+.string, .regexp {
+  color: #f39;
+}
+
+.keyword {
+  color: #00c;
+}
+
+.comment {
+  color: #777;
+  font-style: oblique;
+}
+
+.number {
+  color: #369;
+}
+
+.class, .special {
+  color: #1181B8;
+}
+svg {
+  font: 14px 'Open Sans';
+}
+.axis {
+  shape-rendering: crispEdges;
+}
+.axis path, .axis line {
+  fill: none;
+  stroke-width: .5px;
+}
+.x.axis path {
+  stroke: #777;
+}
+.x.axis line {
+  stroke: #777;
+  stroke-opacity: 1;
+}
+.y.axis line {
+  stroke: #ddd;
+}
+.area {
+  -moz-transform: translate3d(0,0,0);
+  -webkit-transform: translate3d(0,0,0);  
+  transform: translate3d(0,0,0);
+}
+.y.axis text{
+  fill:#aaa;
+}
+text.y.label {
+  fill:#444;
+  font-size: 14px;
+  text-anchor:end;
+}
+path.line {
+  -moz-transform: translate3d(0,0,0);
+  -webkit-transform: translate3d(0,0,0);  
+  transform: translate3d(0,0,0);
+  fill: none;
+  stroke: #028C99;
+  stroke-width: 1px;
+}
+rect.pane {
+  cursor: move;
+  fill: none;
+  pointer-events: all;
+}
+.extremum text{
+  font-size: 11px;
+  text-anchor:middle;
+}
+.extremum text.time.max { fill:#999;}
+.extremum text.time { fill:#ddd;}
+.extremum text.height, .extremum text.hPercent  { fill:#028C99; }
+.extremum text.height {text-anchor:start; font-weight: 300;}
+.extremum text.hPercent {text-anchor:end; font-weight: 700;}
+.extremum circle {
+  stroke:#028C99;
+  stroke-width:1px;
+  fill:none;
+}
+a {color: #9BCA3E; text-decoration: none;font-weight: 700;}
+a:hover {color: #FFB92A; text-decoration: none;font-weight: 700;}
+.novisible { display: none; }
+
+.now line {
+  stroke: #ED5314;
+  opacity: 1;
+  stroke-width:2px;
+}
+.grey{color:#777;}
+.blue{color:#028C99;}
+.red{color:#ED5314;}
+.bold{font-weight: 700;}
+.average line{
+  stroke:#3ABBC9;
+  opacity: 0.7;
+  stroke-width:1px;
+}
+.average.minimum line{
+  stroke:#028C99;
+  opacity: 0.9;
+}
+.average text {
+  fill:#3ABBC9;
+  font-size: 14px;
+}
+.intervals {
+  cursor: pointer;
+}
+.intervals text {
+  font-size: 14px;
+  text-anchor:end;
+  fill:#ED5314;  
+}
+text.shadow {
+  stroke:#fff;
+  stroke-opacity:0.9;
+  stroke-width:3px;
+  stroke-linecap: round;
+}
+.intervals g.active text {
+  fill:#777;    
+}
+.intervals g:hover text {
+  fill:#FFB92A;    
+}
+.nights rect {
+  fill:#567;
+  stroke:none;
+}
+#logo {
+  display:none;
+}
+.cursorLine line,circle {
+  stroke-width:1px;
+  stroke:#444;
+  opacity: 0.7;
+  fill:none;
+}
+line.lineShadow, circle.lineShadow {
+  stroke-width:2px;
+  stroke:#fff;
+  opacity: 0.9  
+}
+.cursorLine rect {
+  opacity:0.5;
+  fill:#fff;
+}
+.cursorTime, .cursorHeight, .cursorPercent {
+  font-size: 14px;  
+}
+.cursorTime {fill:#ED5314; font-weight: 300; }
+.cursorHeight {fill:#028C99; font-weight: 300; }
+.cursorPercent {fill:#028C99; font-weight: 700; }
+.cursorLeft {text-anchor:end;}
+</style>
+</head>
+<body>
+<div id="header">
+  <div id="title"> Koh Phangan Tide Chart 2015 <sup class="grey sup">beta</sup></div>
+  <!--div id="title"> Koh Samui Tide Chart 2015 <sup class="grey sup">beta</sup></div-->
+  <div id="descr"></div>
+</div>
+<div id="menu"></div>
+<div id="logo">Your logo here<sup class="grey sup"><a href="mailto:k@varik.ru">@</a></sup></div>
+<div id="tides"></div>
+<div id="footer">
+<div id="attrib">
+Made with love by <a href="//varik.ru">Konstantin Varik</a>. Inspired by Koh Phangan people -‿-<br/>
+Tide data by <a href="http://www.hydro.navy.mi.th/services2015.htm">Hidrographic Department</a> of Royal Thai Navy. Don't use for navigation. 
+Sun and moon <span class="bold">(soon!)</span> data calculated with <a href="https://github.com/mourner/suncalc">SunCalc</a>. 
+
+  </div>
+</div>
+
+
+<script>
+/*
+data: http://aa.usno.navy.mil/data/docs/RS_OneYear.php
+data: http://www.hydro.navy.mi.th/services2015.htm
+colors: http://www.colorcombos.com/color-scheme-377.html
+
+TODO:
+
+Правильная формула: http://www.linz.govt.nz/docs/hydro/tidal-info/tide-tables/mfth-between-hlw.pdf
+
+https://ru.wikipedia.org/wiki/%D0%9F%D1%80%D0%B8%D0%BB%D0%B8%D0%B2_%D0%B8_%D0%BE%D1%82%D0%BB%D0%B8%D0%B2
+
+при меленьком зуме показывать инфу за день
+
+historical data: http://uhslc.soest.hawaii.edu/data/download/fd#uh328
+predictions: http://www.flaterco.com/xtide/
+*/
+
+// Друг, извини за говнокод. Этот проект начинался с простого наброска, но чуть-чуть вырос. А на рефакторинг не было времени — ну ты понимаешь )))
+// Но я учусь )
+// Konstantin@Varik.ru
+
+
+var PLACE='Koh Phangan',
+	DATAFILE='tides_samui.tsv',
+	places=[{name:'phangan',place:'Koh Phangan',file:'tides_samui.tsv'},{name:'samui',place:'Koh Samui',file:'tides_samui.tsv'},{name:'phuket',place:'Phuket',file:'tides_phuket.tsv'}]
+places.forEach(function(p){
+	if (document.URL.indexOf(p.name)>-1) {
+		PLACE=p.place;
+		DATAFILE=p.file;
+	}
+})
+	
+d3.select('title').text(PLACE+' Tide Chart 2015');
+d3.select('#title').html(PLACE+' Tide Chart 2015 <sup class="grey sup">beta</sup></div>');
+
+function init() {
+  var isFF=window.navigator.userAgent.indexOf('Firefox')>-1;
+  var shadowFilter='\
+  <filter id="dropshadow" height="150%" width="150%">\
+    <feGaussianBlur in="SourceGraphic" stdDeviation="3" /> <!-- stdDeviation is how much to blur -->\
+    <feMerge> \
+      <feMergeNode/> \
+      <feMergeNode in="SourceGraphic"/> <!-- this contains the element that the filter is applied to -->\
+    </feMerge>\
+  </filter>'
+  var placeGeo=[9.7206001,99.9905253];
+  var startDate=new Date(2015, 0, 1),
+      endDate=new Date(2016, 0, 1);
+
+  var wWidth=window.innerWidth||document.documentElement.clientWidth||document.body.clientWidth||1024,
+      wHeight=window.innerHeight||document.documentElement.clientHeight||document.body.clientHeight||768;
+
+  var margin = {top: 150, right: 80, bottom: 80, left: 30},
+      width = wWidth - margin.left - margin.right,
+      height = wHeight - margin.top - margin.bottom,
+      dxStartNow=91,
+      nowScale=200;
+
+  var parseDate = d3.time.format("%d.%m.%Y %H:%M").parse,
+      formatDate = d3.time.format("%Y");
+
+  var timeFormat = d3.time.format.multi([
+    [".%L", function(d) { return d.getMilliseconds(); }],
+    [":%S", function(d) { return d.getSeconds(); }],
+    ["%H:%M", function(d) { return d.getMinutes(); }],
+    ["%H:00", function(d) { return d.getHours(); }],
+    ["%a %d", function(d) { return d.getDay() && d.getDate() != 1; }],
+    ["%b %d", function(d) { return d.getDate() != 1; }],
+    ["%B", function(d) { return d.getMonth(); }],
+    ["%Y", function() { return true; }]
+  ]);
+
+  var x = d3.time.scale()
+      .range([0, width]);
+
+  var y = d3.scale.linear()
+      .range([height, 10]);
+
+  var p;
+
+  var xAxis = d3.svg.axis()
+      .scale(x)
+      .orient("bottom")
+      .tickSize(-height, 0)
+      .tickPadding(6)
+      .tickFormat(timeFormat);
+
+  var yAxis = d3.svg.axis()
+      .scale(y)
+      .orient("right")
+      .tickSize(-width)
+      .tickPadding(6);
+
+  var area = d3.svg.area()
+      .interpolate("cardinal")
+      .tension(0.6)
+      .x(function(d) { return x(d.date); })
+      .y0(y(0))
+      .y1(function(d) { return y(d.value); });
+
+  var line = d3.svg.line()
+      .interpolate("cardinal")
+      .tension(0.6)
+      .x(function(d) { return x(d.date); })
+      .y(function(d) { return y(d.value); });
+
+  var svg = d3.select("#tides").append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom);
+  svg.append('defs').html(shadowFilter);
+
+  svg=svg.append("g").style('opacity',0)
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+  var zoom = d3.behavior.zoom()
+      .on("zoom", draw)
+      .size([width, height])
+      .scaleExtent([1,300]);
+  /*
+  var gradient = svg.append("defs").append("linearGradient")
+      .attr("id", "gradient")
+      .attr("x2", "0%")
+      .attr("y2", "100%");
+
+  gradient.append("stop")
+      .attr("offset", "0%")
+      .attr("stop-color", "#fff")
+      .attr("stop-opacity", .5);
+
+  gradient.append("stop")
+      .attr("offset", "100%")
+      .attr("stop-color", "#3ABBC9")
+      .attr("stop-opacity", 1);
+  */
+
+  svg.append("clipPath")
+      .attr("id", "clip")
+    .append("rect")
+      .attr("x", x(0))
+      .attr("y", y(1)-10)
+      .attr("width", x(1) - x(0))
+      .attr("height", y(0) - y(1)+10);
+
+  svg.append("g")
+      .attr("class", "y axis")
+      .attr("transform", "translate(" + width + ",0)")
+      .append("text")
+      .attr("class", "y label")
+      .attr("dx", -30)
+      .attr("dy", 52)
+      .attr("transform", "rotate(-90)")
+      .text("height, m");
+
+  var nightData=[],night;
+  for (var i=0;i<366;i++){
+    nightData.push({
+      start: SunCalc.getTimes(new Date(startDate.valueOf() + 1000*3600*24*i),placeGeo[0],placeGeo[1]).sunset,
+      end: SunCalc.getTimes(new Date(startDate.valueOf() + 1000*3600*24*(i+1)),placeGeo[0],placeGeo[1]).sunrise
+    });
+  }
+
+  var nightsG=svg.append('g').classed('nights',1).attr("clip-path", "url(#clip)");
+  var nights=nightsG.selectAll('rect').data(nightData).enter().append('rect').attr({y:-10,height:height+10});
+
+  svg.append("path")
+      .attr("class", "area")
+      .style('fill','#3ABBC9')
+      .attr("clip-path", "url(#clip)")
+      //.style("fill", "url(#gradient)");
+
+  /*
+  average=svg.append('g').classed('average',1);
+  average.append('line').attr({ x1:0, x2: width+30 });
+  average.append('text').attr({ x: width+35, dy:'0.3em' }).text('50%');
+  maximum=svg.append('g').classed('average',1);
+  maximum.append('line').attr({ x1:0, x2: width+30});
+  maximum.append('text').attr({ x: width+35, dy:'0.3em' }).text('100%');
+  minimum=svg.append('g').classed('average minimum',1);
+  minimum.append('line').attr({ x1:0, x2: width+30});
+  minimum.append('text').attr({ x: width+35, dy:'0.3em' }).text('0%');
+  */
+
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")");
+
+  var path=svg.append("path")
+      .attr("class", "line")
+      .attr("clip-path", "url(#clip)");
+
+  var now=svg.append('g').attr('class','now');
+      now.append('line').attr({ x1:0, x2:0, y1:0, y2: height })
+
+  var extremum=svg.append('g').attr("clip-path", "url(#clip)").attr('class','novisible').style('opacity',0);
+
+  var cursor=svg.append('g').classed('cursorLine',1).style('opacity',0);
+  cursor.append('rect').attr();
+  cursor.append('line').attr({ x1:0, x2:0, y1:-10, y2: height, class:'lineShadow' });
+  cursor.append('line').attr({ x1:0, x2:0, y1:-10, y2: height });
+  cursor.append('circle').attr({r:3, class:'lineShadow'});
+  cursor.append('circle').attr({r:3});
+  var cursorText=cursor.append('g').attr({transform: 'translate(10,20)'});
+  cursorText.append('text').attr({ dy:'1em', class: 'cursorTime shadow' }).attr('filter',"url(#dropshadow)");
+  cursorText.append('text').attr({ dy:'2.4em', class: 'cursorHeight shadow' }).attr('filter',"url(#dropshadow)");
+  cursorText.append('text').attr({ dy:'3.8em', class: 'cursorPercent shadow' }).attr('filter',"url(#dropshadow)");
+  cursorText.append('text').attr({ dy:'1em', class: 'cursorTime' });
+  cursorText.append('text').attr({ dy:'2.4em', class: 'cursorHeight' });
+  cursorText.append('text').attr({ dy:'3.8em', class: 'cursorPercent' });
+
+
+  var isOverAlready=0;
+
+  var intervals={
+    year:'Year',
+    '3month':'3 month',
+    month:'Month',
+    week:'Week',
+    now:'Today'
+  }
+  svg.append("rect")
+      .attr("class", "pane")
+      .attr("width", width)
+      .attr("height", height)
+      .call(zoom)
+      .on('mouseover',function(){ 
+        if (isOverAlready) return;
+        isOverAlready=true;
+        cursor.style('opacity',1);
+      })
+      .on('mousemove',function(d){
+        moveCursor(d3.mouse(this)[0]);
+      })
+      .on('click',function(d){
+        moveCursor(d3.mouse(this)[0]);
+      })
+
+  var intervalG=d3.select('#menu').selectAll('p').data(d3.entries(intervals)).enter().append('p')
+    .text(function(d){return d.value; });
+  intervalG.on('click',function(d){
+      intervalG.classed('active',0);
+      d3.select(this).classed('active',1);
+      zoom2(d.key);
+    });
+  intervalG.filter(function(d){return d.key=='now'; }).classed('active',1);
+  
+  var tideData;
+  var month=0, lastDay=0, date;
+  //console.log('start load tsv');
+  d3.tsv(DATAFILE, function(error,data) {
+    //console.log(data)
+    
+    data[0].extremum=+data[0].height<+data[1].height ? 'min' : 'max';
+    data.forEach(function(d,i) {
+      if (d.day==+1) month+=1;
+      d.day=d.day||lastDay;
+      d.day=d3.format("02d")(+d.day);
+      date=d.day+'.'+d3.format("02d")(month)+'.2015 '+d.time;
+      d.date = parseDate(date);
+      d.weekday=d3.time.format("%a")(d.date);
+      d.value = +d.height;
+      lastDay=d.day;
+      if (i) d.extremum=data[i].value<data[i-1].value ? 'min' : 'max';
+    });
+    tideData=data;
+    console.log(tideData)
+
+    x.domain([new Date(2015, 0, 1), new Date(2016, 0, 0)]);
+    y.domain([d3.min(data, function(d) { return +d.value; })-0.2, d3.max(data, function(d) { return +d.value; })+0.1]);
+    //y.domain([d3.min(data, function(d) { return d.value; }), d3.max(data, function(d) { return d.value; })]);
+    zoom.x(x);
+
+    p = d3.scale.linear()
+        .domain([d3.min(data, function(d) { return +d.value; }), d3.max(data, function(d) { return +d.value; })])
+        .range([0,100]);
+
+    extremum.selectAll('g').data(data).enter().append('g').attr('transform',function(d,i){
+      return 'translate('+(x(d.date))+','+y(d.value)+')';
+    }).classed('extremum',1);
+    extremum.selectAll('g').append('circle').attr({ r: 3 })
+    extremumTexts=extremum.selectAll('g').append('g');
+    extremumTexts.append('text').attr({ class: 'height',dy: '1.3em', dx:'0.2em' }).text(function(d){ return ''+(d3.format('.1f')(d.value))+'m'; });
+    extremumTexts.append('text').attr({ class: 'hPercent',dy: '1.3em', dx:'-0.2em' }).text(function(d){ return ''+Math.round(p(d.value))+'%'; });
+    extremumTexts.append('text').attr({ class: 'time',dy: '2.6em' }).text(function(d){ return d.time; });
+    extremumTexts.append('text').attr({ class: 'time',dy: '3.8em' }).text(function(d){ return d.weekday+' '+d.day; });
+    extremumTexts.selectAll('text').filter(function(d){ return d.extremum=='max';}).attr('y', -50).classed('max',1);
+
+    /*
+    var av=(p.domain()[0]+p.domain()[1])/2;
+    average.attr({ transform: 'translate(0,'+y(av)+')' });
+    maximum.attr('transform','translate(0,'+y(p.domain()[1])+')')
+    minimum.attr('transform','translate(0,'+y(p.domain()[0])+')')
+	*/
+
+    svg.select("path.area").data([data]);
+    svg.select("path.line").data([data]);
+    svg.select("g.y.axis").call(yAxis);
+
+    zoom.scale(nowScale);
+    zoom.translate([x(startDate)-x(new Date)+dxStartNow,0]);
+
+    draw();
+    nowCalc();
+    svg.transition().duration(2000).style('opacity',1);
+    //setTimeout(function(){zoom2('now');},1000)
+  });
+
+  var extremumScale=30,
+      isExtremum=false,
+      isExtremumTransform=false,
+      nightsScale=7,
+      isNights=false,
+      isNightsTransform=false;
+
+  function findYatX(x, line) {
+      var pathLength = line.getTotalLength();
+      var BBox = line.getBBox();
+      var scale = pathLength/BBox.width;
+      var offsetLeft = document.getElementById("tides").offsetLeft;
+
+      var beginning = x, end = pathLength, target;
+      while (true) {
+        target = Math.floor((beginning + end) / 2);
+        pos = line.getPointAtLength(target);
+        if ((target === end || target === beginning) && pos.x !== x) {
+            break;
+        }
+        if (pos.x > x)      end = target;
+        else if (pos.x < x) beginning = target;
+        else                break; //position found
+      }
+      return pos.y;
+  }
+  var bisector=d3.bisector(function(d){return d.date;}).right;
+
+  function moveCursor(xPos){
+    if (xPos>width-90) xPos=width-90;
+    var yPos=findYatX(xPos,path.node());
+    var height=y.invert(yPos);
+    if (xPos>width-180) cursor.selectAll('text').attr('dx','-20px').classed('cursorLeft',1)
+      else cursor.selectAll('text').attr('dx',0).classed('cursorLeft',0)
+    cursor.attr('transform','translate('+xPos+',0)');
+    cursor.selectAll('circle').attr({cy:yPos});
+    cursor.selectAll('.cursorTime').text(d3.time.format("%H:%M %b %d %a")(x.invert(xPos)));
+    cursor.selectAll('.cursorHeight').text(d3.format('.1f')(height)+' m');
+    cursor.selectAll('.cursorPercent').text(Math.round(p(height))+'%');
+  }
+
+  function nowCalc(){
+    var nowDate= new Date;
+    var height=y.invert(findYatX(x(nowDate),path.node()));
+    var nowStat=' <span class="bold red">now</span> <span class="grey">(%time)</span>. Level is <span class="blue">%height m</span>.<br/>';
+    nowStat=nowStat.replace('%time',d3.time.format("%H:%M")(nowDate))
+            .replace('%height',d3.format('.1f')(height))
+            .replace('%percent',Math.round(p(height)));
+    //nowStat.replace('',); 
+    next=tideData[bisector(tideData,nowDate)];
+    nextText='Next <span class="bold blue">'+(next.extremum=='min' ? '↓' : '↑')+'</span> '
+    nextH=Math.round((next.date-nowDate)/(3600*1000));
+    nextM=Math.round((next.date-nowDate)/(60*1000));
+    nextExtremum=next.extremum;
+    if (nextH>23) nextText+='<span class="red">tomorrow</span>.'
+      else if (nextH) nextText+='after <span class="red">'+nextH+' hours</span>.'
+        else if (nextM>5) nextText+='after <span class=" red">'+nextM+' minutes</span>.'
+          else nextText+=' right now!'
+    next=tideData[bisector(tideData,next.date)];
+    nextText+=' Next <span class="bold blue">'+(next.extremum=='min' ? '↓' : '↑')+'</span> '
+    nextH=Math.round((next.date-nowDate)/(3600*1000));
+    nextM=Math.round((next.date-nowDate)/(60*1000));
+    if (nextH>23) nextText+='<span class="red">tomorrow</span>.'
+      else if (nextH) nextText+='after <span class="red">'+nextH+' hours</span>.'
+        else if (nextM>5) nextText+='after <span class=" red">'+nextM+' minutes</span>.'
+          else nextText=' right now!';
+    nowStat+=nextText;//+' '+wWidth+' '+wHeight;
+    //console.log(nextExtremum,nowStat)
+    nowStat='Tide is <span class="blue bold">'+(nextExtremum=='max' ? '↗' : '↘')+'</span>'+nowStat;
+
+    d3.select('#descr').html(nowStat); 
+    setTimeout(nowCalc,60000); 
+  }
+
+  function draw() {
+
+    var scale=zoom.scale();
+    //console.log(scale);
+
+    if (scale>extremumScale&&!isExtremum) {
+      extremum.classed('novisible',0).transition().duration(1000).style('opacity',1)
+      isExtremum=true;
+      isExtremumTransform=true;
+    }
+    if (scale<extremumScale&&isExtremum) {
+      extremum.transition().duration(1000).style('opacity',0).each('end',function(){ d3.select(this).classed('novisible',1)})
+      isExtremum=false;
+      setTimeout(function(){isExtremumTransform=false;},1000)
+    }
+    if (scale>nightsScale&&!isNights) {
+      nightsG.classed('novisible',0).transition().duration(1000).style('opacity',1)
+      isNights=true;
+      isNightsTransform=true;
+    }
+    if (scale<nightsScale&&isNights) {
+      nightsG.transition().duration(1000).style('opacity',0).each('end',function(){ d3.select(this).classed('novisible',1)})
+      isNights=false;
+      setTimeout(function(){isNightsTransform=false;},1000)
+    }
+
+    //.filter(function(d){ return x(d.value)>0&&x(d.value)<width; })
+    dx=x(new Date)-x(new Date-1000*3600*24*2);
+    //console.log(dx);
+    if (isExtremumTransform||isExtremum) extremum.selectAll('g.extremum').attr('transform',function(d,i){
+      return 'translate('+(x(d.date))+','+y(d.value)+')';
+    });
+
+    line.defined(function(d){
+      return d.date>x.invert(-dx)&&d.date<x.invert(width+dx);
+    })
+    area.defined(function(d){
+      return d.date>x.invert(-dx)&&d.date<x.invert(width+dx);
+    })
+
+    svg.select("g.x.axis").call(xAxis);
+    svg.select("path.area").attr("d", area);
+    svg.select("path.line").attr("d", line);
+
+    if (isNightsTransform||isNights) 
+      nights.attr('x',function(d){ return x(d.start); })
+            .attr('width',function(d){ return x(d.end)-x(d.start); })
+    
+
+    now.attr('transform','translate('+(x(new Date))+',0)');
+
+    /*
+    yAxis.call(yAxis);
+    xAxis.call(xAxis);
+    area.attr("d", area);
+    linePath.attr("d", line);
+  */
+  }
+  function zoom2(to){
+    var scale,dx, now;
+    var curScale=zoom.scale()
+    if (to=='now'){
+      //isExtremumTransform=true;
+      scale=200;
+      middle=new Date;
+      dxStart=dxStartNow;
+
+    } else {
+      if (to=='week') {
+        var interval=1000*3600*24*8;
+        //isExtremumTransform=true;
+      }
+      if (to=='month') {
+        var interval=1000*3600*24*40;
+      }
+      if (to=='3month') {
+        var interval=1000*3600*24*100;
+      }
+      middle=x.invert(width/2);
+      if (to=='year') {
+        var interval=1000*3600*24*366;
+        middle=startDate.valueOf()+(endDate-startDate)/2;
+      }
+      dxStart=width/2;
+      scale=curScale*(width/2)/(x(middle)-x(middle-interval/2));
+    }
+    //console.log(scale,dxStart,startDate,middle)
+    var duration=isFF ? 0 : Math.abs(scale-curScale)*12+500;
+    path.transition().duration(duration).call(zoom.scale(scale).event);
+    path.transition().duration(duration).call(zoom.translate([x(startDate)-x(middle)+dxStart,0]).event);
+  }
+}
+
+function resize(){
+  $(window).resize(function () {
+      waitForFinalEvent(function(){
+      isResize=true;
+      d3.select('svg').remove();
+      init();      
+      }, 500, "I love you!");
+  });
+}
+var waitForFinalEvent = (function () {
+  var timers = {};
+  return function (callback, ms, uniqueId) {
+    if (!uniqueId) {
+      uniqueId = "Don't call this twice without a uniqueId";
+    }
+    if (timers[uniqueId]) {
+      clearTimeout (timers[uniqueId]);
+    }
+    timers[uniqueId] = setTimeout(callback, ms);
+  };
+})();
+
+
+init();
+window.onresize=resize;
+window.addEventListener('deviceorientation', resize);
+
+</script>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-9384166-2', 'auto');
+  ga('send', 'pageview');
+
+</script>
+</body>
+</html>
